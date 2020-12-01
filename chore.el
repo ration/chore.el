@@ -1,4 +1,4 @@
-;;; task-organizer.el --- Bootstrap tasks  -*- lexical-binding: t -*-
+;;; chore.el --- Bootstrap tasks  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2020 Tatu Lahtela
 
@@ -35,36 +35,50 @@
 ;; current project
 (unless (boundp 'current-project) (setq current-project ""))
 
-(defcustom task-oragnizer--current-project-git-root nil "GIT root for current project")
+(defcustom chore-current-project-git-root nil "GIT root for current project")
 
-(defcustom task-organizer--notes-root  (concat "/home/lahtela/Org/" current-project) "Root directory for notes files")
+;; TODO other task backends
+(defcustom chore-ticket-backend "clubhouse" "Backend for tasks")
+(require 'chore-clubhouse)
 
-;; Requires org-clubhouse
-(defun task-organizer--get-clubhouse-tasks ()
-  "Get cons list of task id - title from Clubhouse"
-  (to-id-name-pairs (org-clubhouse--search-stories
-                          (format "owner:%s !is:done !is:archived"
-                                  org-clubhouse-username))))
+;; TODO
+(defcustom chore-single-note-file nil "If non nill this file as the org file")
 
-(defun task-organizer--task-name-cleaned (task)
+(defcustom chore-notes-root  (concat (getenv "HOME") "/Org/" current-project)
+  "Root directory for notes files. Creates a note file in this directory unless CHORE--SINGLE-NOTE-FILE is set")
+
+;; TODO allow changing current note
+(defcustom chore-current-note nil "Current note location")
+
+(defun chore-switch-to-note ()
+  "Switch to note file if set"
+  (interactive)
+  (if (string-equal (buffer-file-name) chore-current-note)
+      (switch-to-buffer (other-buffer (current-buffer) 1))
+    (if chore-current-note
+        (find-file chore-current-note))))
+
+(defun chore--task-name-cleaned (task)
   (replace-regexp-in-string "[ :]" "_" (cdr task)))
 
-(defun task-organizer--branch-name-cleaned (task)
+(defun chore--branch-name-cleaned (task)
+  ;; TODO as config
   (format "feature/ch%s/%s" (car task) (replace-regexp-in-string "[ :]" "-" (cdr task))))
 
-(defun task-organizer--create-org-file (task)
+(defun chore--create-org-file (task)
   "Create notes file for the new task.
 
    Creates the initial level with org-clubhouse"
   (interactive)
-  ;;(dired-create-empty-file (concat task--organizer-notes-root "/" (format) ))
-  (let ((notes-file (concat task-organizer--notes-root (format "/ch%s-%s" (car task) (task-organizer--task-name-cleaned task))
+  ;; TODO customize ch
+  (let ((notes-file (concat chore--notes-root (format "/ch%s-%s" (car task) (chore--task-name-cleaned task))
                             ".org")))
+    (setq chore-current-note notes-file)
     (find-file-other-window notes-file)
     (org-clubhouse-headline-from-story-id 1 (car task))
     (save-buffer)))
 
-(defun task-organizer--check-clean-repo ()
+(defun chore--check-clean-repo ()
   "Check or verify that there aren't anything important ongoing"
   (if (or (magit-unstaged-files) (magit-staged-files))
       (if (y-or-n-p "There are unstaged files. Continue anyway?" )
@@ -72,26 +86,26 @@
         nil)
     t))
 
-(defun task-organizer--prompt-branch-name (task)
+(defun chore--prompt-branch-name (task)
   "Prompt user for new branch name"
 (interactive)
     (read-string
-     (format "New branch name: (%s): " (task-organizer--branch-name-cleaned task)) ; prompt. It's nice to show the default value
-     (task-organizer--branch-name-cleaned task) ; initial input.  This value is prefilled in the mini-buffer. Available but considered deprecated.
+     (format "New branch name: (%s): " (chore--branch-name-cleaned task)) ; prompt. It's nice to show the default value
+     (chore--branch-name-cleaned task) ; initial input.  This value is prefilled in the mini-buffer. Available but considered deprecated.
      nil ; history list if you have a specific one for this
-     (task-organizer--branch-name-cleaned task) ; Whatever this evaluates to will be the default value
+     (chore--branch-name-cleaned task) ; Whatever this evaluates to will be the default value
      ))
 
-(defun task-organizer--create-branch (task)
+(defun chore--create-branch (task)
   (interactive)
-  (if task-oragnizer--current-project-git-root
+  (if chore-current-project-git-root
       (if (y-or-n-p "Pull master and create branch? ")
           (progn
             ;; TODO x
             (with-temp-buffer
-              (cd task-oragnizer--current-project-git-root)
-              (if (and (y-or-n-p "Create branch for this task? ") (task-organizer--check-clean-repo))
-                  (magit-branch-and-checkout (task-organizer--prompt-branch-name task) (completing-read "Starting point: "(magit-list-remote-branch-names))))))
+              (cd chore-current-project-git-root)
+              (if (and (y-or-n-p "Create branch for this task? ") (chore--check-clean-repo))
+                  (magit-branch-and-checkout (chore--prompt-branch-name task) (completing-read "Starting point: "(magit-list-remote-branch-names))))))
         (message "Git root not set, doing nothing"))))
 
 (defun find--alist-entry (target alist)
@@ -99,16 +113,17 @@
        (-find (lambda (key-value)
                    (string-equal (cdr key-value) target)))))
 
-(defun task-organizer-new-task ()
+(defun chore-new-task ()
   "Execute this when selecting a new task"
   (interactive)
-  (let* ((tasks (task-organizer--get-clubhouse-tasks))
+  (let* ((tasks (chore--get-tasks))
          (task (find--alist-entry
           (completing-read "Select Story: "
                            (-map #'cdr tasks)) tasks)))
-    (task-organizer--create-branch task)
-    (task-organizer--create-org-file task)))
+    (chore--create-branch task)
+    (chore--create-org-file task)))
 
-;;(task-organizer-new-task)
+;;(chore-new-task)
 
+(provide 'chore)
 
