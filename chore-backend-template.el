@@ -3,7 +3,7 @@
 ;; and replace all BACKEND with name
 
 ;; Requires org-clubhouse
-(defun chore-BACKEND-get-tasks ()
+(defun chore-BACKEND-get-chores ()
   "Get cons list of task id - title from Clubhouse"
   (to-id-name-pairs (org-clubhouse--search-stories
                           (format "owner:%s !is:done !is:archived"
@@ -11,5 +11,7 @@
 
 
 (defun chore-BACKEND-create-org-entry ())
+
+(defun chore-BACKEND-branch-name (chore))
 
 (provide 'chore-BACKEND)

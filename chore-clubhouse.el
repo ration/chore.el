@@ -11,4 +11,7 @@
   "Create ORG entry for chore."
   (org-clubhouse-headline-from-story-id 1 (car chore)))
 
+(defun chore-clubhouse-branch-name (chore)
+  (format "feature/ch%s/%s" (car chore) (replace-regexp-in-string "[ :]" "-" (cdr chore))))
+
 (provide 'chore-clubhouse)

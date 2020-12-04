@@ -29,20 +29,19 @@
 ;; Creates the repeatable infrastructure for a new chore, such as
 ;; a new org file for notes and a git branch.
 
+;; See also https://github.com/arbox/org-sync
+
 ;;; Code:
 
 ;;; Customization
-(defgroup chore nil "Chore related customizations." :prefix "chore-")
-
 (defcustom chore-current-project-subdir "" "Subdiretory for notes files." :type '(string) :group 'chore)
 (defcustom chore-current-project-git-root nil "GIT root for current project." :type '(string) :group 'chore)
 (defcustom chore-single-note-file nil "If non nill this file as the org file.
 TODO not implemented." :type '(string) :group 'chore)
 
-;; TODO other chore backends
-(defcustom chore-ticket-backend "clubhouse" "Backend for chores." :type '(string) :group 'chore)
-(load-file (expand-file-name "chore-clubhouse.el" (file-name-directory (buffer-file-name))))
+(defcustom chore-backend "forge" "Backend for chores." :type '(string) :group 'chore)
 
+(load-file (expand-file-name (concat "chore-" chore-backend ".el") (file-name-directory (buffer-file-name))))
 
 (defcustom chore-notes-root  (concat (getenv "HOME") "/Org/" chore-current-project-subdir)
   "Root directory for notes files.
@@ -56,7 +55,7 @@ Creates a note file in this directory unless CHORE--SINGLE-NOTE-FILE is set." :t
 (defun chore-apply (suffix &rest args)
   "Simple facility to emulate multimethods.
 Apply SUFFIX to spotify-prefixed functions, applying ARGS."
-  (let ((func-name (format "chore-%s-%s" chore-ticket-backend suffix)))
+  (let ((func-name (format "chore-%s-%s" chore-backend suffix)))
     (apply (intern func-name) args)))
 
 (defun chore--get-chores ()
@@ -66,6 +65,11 @@ Apply SUFFIX to spotify-prefixed functions, applying ARGS."
 (defun chore--create-org-entry (chore)
   "Create org entry for CHORE."
   (chore-apply "create-org-entry" chore))
+
+(defun chore--branch-name (chore)
+  "Branch name to create for CHORE."
+  ;; TODO as config
+  (chore-apply "branch-name" chore))
 
 ;;; Common methods
 
@@ -80,11 +84,6 @@ Apply SUFFIX to spotify-prefixed functions, applying ARGS."
 (defun chore--chore-name-cleaned (chore)
   "Cleanup CHORE name into something sensible for the file name."
   (replace-regexp-in-string "[ :]" "_" (cdr chore)))
-
-(defun chore--branch-name-cleaned (chore)
-  "Branch name to create for CHORE."
-  ;; TODO as config
-  (format "feature/ch%s/%s" (car chore) (replace-regexp-in-string "[ :]" "-" (cdr chore))))
 
 (defun chore--create-org-file (chore)
   "Create notes file for the CHORE.
@@ -111,10 +110,10 @@ Apply SUFFIX to spotify-prefixed functions, applying ARGS."
   "Prompt user for new branch name for CHORE."
 (interactive)
     (read-string
-     (format "New branch name: (%s): " (chore--branch-name-cleaned chore)) ; prompt. It's nice to show the default value
-     (chore--branch-name-cleaned chore) ; initial input.  This value is prefilled in the mini-buffer. Available but considered deprecated.
+     (format "New branch name: (%s): " (chore--branch-name chore)) ; prompt. It's nice to show the default value
+     (chore--branch-name chore) ; initial input.  This value is prefilled in the mini-buffer. Available but considered deprecated.
      nil ; history list if you have a specific one for this
-     (chore--branch-name-cleaned chore) ; Whatever this evaluates to will be the default value
+     (chore--branch-name chore) ; Whatever this evaluates to will be the default value
      ))
 
 (defun chore--create-branch (chore)
