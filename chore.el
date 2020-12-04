@@ -1,4 +1,4 @@
-;;; chore.el --- Bootstrap tasks  -*- lexical-binding: t -*-
+;;; chore.el --- Bootstrap chores  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2020 Tatu Lahtela
 
@@ -7,7 +7,7 @@
 ;; Version:    0.1.0
 ;; Keywords:   lisp, clubhouse, git
 ;; Homepage:   https://github.com/doublep/datetime
-;; Package-Requires: ((emacs "24.4") (org-clubhouse) (magit))
+;; Package-Requires: ((emacs "24.4") (dash) (magit))
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -25,105 +25,125 @@
 
 ;;; Commentary:
 
-;; Helpers for organizing creation and handling of tasks.
-;; Creates the repeatable infrastructure for a new task, such as
+;; Helpers for organizing creation and handling of chores.
+;; Creates the repeatable infrastructure for a new chore, such as
 ;; a new org file for notes and a git branch.
 
 ;;; Code:
 
-;; Set current-project if you want a subdirectory for notes for the
-;; current project
-(unless (boundp 'current-project) (setq current-project ""))
+;;; Customization
+(defgroup chore nil "Chore related customizations." :prefix "chore-")
 
-(defcustom chore-current-project-git-root nil "GIT root for current project")
+(defcustom chore-current-project-subdir "" "Subdiretory for notes files." :type '(string) :group 'chore)
+(defcustom chore-current-project-git-root nil "GIT root for current project." :type '(string) :group 'chore)
+(defcustom chore-single-note-file nil "If non nill this file as the org file.
+TODO not implemented." :type '(string) :group 'chore)
 
-;; TODO other task backends
-(defcustom chore-ticket-backend "clubhouse" "Backend for tasks")
-(require 'chore-clubhouse)
+;; TODO other chore backends
+(defcustom chore-ticket-backend "clubhouse" "Backend for chores." :type '(string) :group 'chore)
+(load-file (expand-file-name "chore-clubhouse.el" (file-name-directory (buffer-file-name))))
 
-;; TODO
-(defcustom chore-single-note-file nil "If non nill this file as the org file")
 
-(defcustom chore-notes-root  (concat (getenv "HOME") "/Org/" current-project)
-  "Root directory for notes files. Creates a note file in this directory unless CHORE--SINGLE-NOTE-FILE is set")
+(defcustom chore-notes-root  (concat (getenv "HOME") "/Org/" chore-current-project-subdir)
+  "Root directory for notes files.
+Creates a note file in this directory unless CHORE--SINGLE-NOTE-FILE is set." :type '(string) :group 'chore)
 
 ;; TODO allow changing current note
-(defcustom chore-current-note nil "Current note location")
+(defcustom chore-current-note nil "Current note location." :type '(string) :group 'chore)
+
+
+;;; Backend multimethods
+(defun chore-apply (suffix &rest args)
+  "Simple facility to emulate multimethods.
+Apply SUFFIX to spotify-prefixed functions, applying ARGS."
+  (let ((func-name (format "chore-%s-%s" chore-ticket-backend suffix)))
+    (apply (intern func-name) args)))
+
+(defun chore--get-chores ()
+  "Retrieve list of chores from backend."
+  (chore-apply "get-chores"))
+
+(defun chore--create-org-entry (chore)
+  "Create org entry for CHORE."
+  (chore-apply "create-org-entry" chore))
+
+;;; Common methods
 
 (defun chore-switch-to-note ()
-  "Switch to note file if set"
+  "Switch to note file if set."
   (interactive)
   (if (string-equal (buffer-file-name) chore-current-note)
       (switch-to-buffer (other-buffer (current-buffer) 1))
     (if chore-current-note
         (find-file chore-current-note))))
 
-(defun chore--task-name-cleaned (task)
-  (replace-regexp-in-string "[ :]" "_" (cdr task)))
+(defun chore--chore-name-cleaned (chore)
+  "Cleanup CHORE name into something sensible for the file name."
+  (replace-regexp-in-string "[ :]" "_" (cdr chore)))
 
-(defun chore--branch-name-cleaned (task)
+(defun chore--branch-name-cleaned (chore)
+  "Branch name to create for CHORE."
   ;; TODO as config
-  (format "feature/ch%s/%s" (car task) (replace-regexp-in-string "[ :]" "-" (cdr task))))
+  (format "feature/ch%s/%s" (car chore) (replace-regexp-in-string "[ :]" "-" (cdr chore))))
 
-(defun chore--create-org-file (task)
-  "Create notes file for the new task.
+(defun chore--create-org-file (chore)
+  "Create notes file for the CHORE.
 
    Creates the initial level with org-clubhouse"
   (interactive)
-  ;; TODO customize ch
-  (let ((notes-file (concat chore--notes-root (format "/ch%s-%s" (car task) (chore--task-name-cleaned task))
+  ;; TODO customize ch from backend
+  (let ((notes-file (concat chore-notes-root (format "/ch%s-%s" (car chore) (chore--chore-name-cleaned chore))
                             ".org")))
     (setq chore-current-note notes-file)
     (find-file-other-window notes-file)
-    (org-clubhouse-headline-from-story-id 1 (car task))
+    (chore--create-org-entry chore)
     (save-buffer)))
 
 (defun chore--check-clean-repo ()
-  "Check or verify that there aren't anything important ongoing"
+  "Check or verify that there aren't anything important ongoing."
   (if (or (magit-unstaged-files) (magit-staged-files))
-      (if (y-or-n-p "There are unstaged files. Continue anyway?" )
+      (if (y-or-n-p "There are unstaged files.  Continue anyway? " )
            t
         nil)
     t))
 
-(defun chore--prompt-branch-name (task)
-  "Prompt user for new branch name"
+(defun chore--prompt-branch-name (chore)
+  "Prompt user for new branch name for CHORE."
 (interactive)
     (read-string
-     (format "New branch name: (%s): " (chore--branch-name-cleaned task)) ; prompt. It's nice to show the default value
-     (chore--branch-name-cleaned task) ; initial input.  This value is prefilled in the mini-buffer. Available but considered deprecated.
+     (format "New branch name: (%s): " (chore--branch-name-cleaned chore)) ; prompt. It's nice to show the default value
+     (chore--branch-name-cleaned chore) ; initial input.  This value is prefilled in the mini-buffer. Available but considered deprecated.
      nil ; history list if you have a specific one for this
-     (chore--branch-name-cleaned task) ; Whatever this evaluates to will be the default value
+     (chore--branch-name-cleaned chore) ; Whatever this evaluates to will be the default value
      ))
 
-(defun chore--create-branch (task)
-  (interactive)
+(defun chore--create-branch (chore)
+  "Create branch for CHORE."
   (if chore-current-project-git-root
       (if (y-or-n-p "Pull master and create branch? ")
           (progn
-            ;; TODO x
             (with-temp-buffer
               (cd chore-current-project-git-root)
-              (if (and (y-or-n-p "Create branch for this task? ") (chore--check-clean-repo))
-                  (magit-branch-and-checkout (chore--prompt-branch-name task) (completing-read "Starting point: "(magit-list-remote-branch-names))))))
+              (if (and (y-or-n-p "Create branch for this chore? ") (chore--check-clean-repo))
+                  (magit-branch-and-checkout (chore--prompt-branch-name chore) (completing-read "Starting point: "(magit-list-remote-branch-names))))))
         (message "Git root not set, doing nothing"))))
 
 (defun find--alist-entry (target alist)
+  "Find TARGET entry in alist ALIST."
   (->> alist
        (-find (lambda (key-value)
                    (string-equal (cdr key-value) target)))))
 
-(defun chore-new-task ()
-  "Execute this when selecting a new task"
+(defun chore-new-chore ()
+  "Execute this when selecting a new chore."
   (interactive)
-  (let* ((tasks (chore--get-tasks))
-         (task (find--alist-entry
+  (let* ((chores (chore--get-chores))
+         (chore (find--alist-entry
           (completing-read "Select Story: "
-                           (-map #'cdr tasks)) tasks)))
-    (chore--create-branch task)
-    (chore--create-org-file task)))
-
-;;(chore-new-task)
+                           (-map #'cdr chores)) chores)))
+    (chore--create-branch chore)
+    (chore--create-org-file chore)))
 
 (provide 'chore)
 
+;;; chore.el ends here
