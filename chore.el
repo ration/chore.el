@@ -41,7 +41,8 @@ TODO not implemented." :type '(string) :group 'chore)
 
 (defcustom chore-backend "forge" "Backend for chores." :type '(string) :group 'chore)
 
-(load-file (expand-file-name (concat "chore-" chore-backend ".el") (file-name-directory (buffer-file-name))))
+(let ((backend-file (expand-file-name (concat "chore-" chore-backend ".el") (file-name-directory load-file-name))))
+  (if (file-exists-p backend-file) (load-file backend-file)))
 
 (defcustom chore-notes-root  (concat (getenv "HOME") "/Org/" chore-current-project-subdir)
   "Root directory for notes files.
