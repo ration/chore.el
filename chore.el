@@ -77,7 +77,7 @@ Apply SUFFIX to spotify-prefixed functions, applying ARGS."
 (defun chore-switch-to-note ()
   "Switch to note file if set."
   (interactive)
-  (if (string-equal (buffer-file-name) chore-current-note)
+  (if (string-equal (file-truename buffer-file-name) (file-truename chore-current-note))
       (switch-to-buffer (other-buffer (current-buffer) 1))
     (if chore-current-note
         (find-file chore-current-note))))
