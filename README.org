@@ -10,7 +10,7 @@ Features:
 
 TODO:
 - [ ] Switch between chores
-- [ ] Customizable branch name template
+- [ ] Customizable file name for chore file
 - [ ] Allow easy switching between projects
 
 Supported backends:
