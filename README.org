@@ -1,17 +1,18 @@
 # chore.el
 
-Chore.el is an Emacs package to automate workflows during programming tasks it can:
-- Fetch tasks from ticketing backends
-- Create a branch
-
-Supported backends:
-- [[https://github.com/magit/forge][magit/forge]]
-- [[https://clubhouse.io/][Clubhouse]]
+Chore.el is an Emacs package to automate workflows during programming tasks while keeping notes in org-mode.
 
 Features:
 - [X] Fetch tasks from supported backends
 - [X] Create a new note file for chores
 - [X] (optionally) create task for branch
+- [X] Create notes in a single notes file
+
 TODO:
-- [ ] Create notes in a single notes file
 - [ ] Switch between chores
+- [ ] Customizable branch name template
+- [ ] Allow easy switching between projects
+
+Supported backends:
+- [[https://github.com/magit/forge][magit/forge]]
+- [[https://clubhouse.io/][Clubhouse]]

@@ -36,8 +36,7 @@
 ;;; Customization
 (defcustom chore-current-project-subdir "" "Subdiretory for notes files." :type '(string) :group 'chore)
 (defcustom chore-current-project-git-root nil "GIT root for current project." :type '(string) :group 'chore)
-(defcustom chore-single-note-file nil "If non nill this file as the org file.
-TODO not implemented." :type '(string) :group 'chore)
+(defcustom chore-single-note-file "" "If non nill this file as the org file." :type '(string) :group 'chore)
 
 (defcustom chore-backend "forge" "Backend for chores." :type '(string) :group 'chore)
 
@@ -77,19 +76,18 @@ Apply SUFFIX to spotify-prefixed functions, applying ARGS."
 (defun chore-switch-to-note ()
   "Switch to note file if set."
   (interactive)
-  (if (string-equal (file-truename buffer-file-name) (file-truename chore-current-note))
-      (switch-to-buffer (other-buffer (current-buffer) 1))
-    (if chore-current-note
-        (find-file chore-current-note))))
+  (let ((chore-note-file (if chore-single-note-file chore-single-note-file chore-current-note)))
+    (if chore-note-file
+        (if (string-equal (file-truename buffer-file-name) (file-truename chore-note-file))
+            (switch-to-buffer (other-buffer (current-buffer) 1))
+          (find-file chore-note-file)))))
 
 (defun chore--chore-name-cleaned (chore)
   "Cleanup CHORE name into something sensible for the file name."
   (replace-regexp-in-string "[ :]" "_" (cdr chore)))
 
 (defun chore--create-org-file (chore)
-  "Create notes file for the CHORE.
-
-   Creates the initial level with org-clubhouse"
+  "Create notes file for the CHORE."
   (interactive)
   ;; TODO customize ch from backend
   (let ((notes-file (concat chore-notes-root (format "/ch%s-%s" (car chore) (chore--chore-name-cleaned chore))
@@ -98,6 +96,12 @@ Apply SUFFIX to spotify-prefixed functions, applying ARGS."
     (find-file-other-window notes-file)
     (chore--create-org-entry chore)
     (save-buffer)))
+
+(defun chore--create-org-headline (chore)
+  "Create chore note to end in existing org file."
+  (find-file chore-single-note-file)
+  (goto-char (point-max))
+  (chore--create-org-entry chore))
 
 (defun chore--check-clean-repo ()
   "Check or verify that there aren't anything important ongoing."
@@ -134,15 +138,20 @@ Apply SUFFIX to spotify-prefixed functions, applying ARGS."
        (-find (lambda (key-value)
                    (string-equal (cdr key-value) target)))))
 
+(defun chore-pick-chore ()
+  (interactive)
+  (let ((chores (chore--get-chores)))
+    (find--alist-entry
+     (completing-read "Select Story: " (-map #'cdr chores)) chores)))
+
 (defun chore-new-chore ()
   "Execute this when selecting a new chore."
   (interactive)
-  (let* ((chores (chore--get-chores))
-         (chore (find--alist-entry
-          (completing-read "Select Story: "
-                           (-map #'cdr chores)) chores)))
+  (let ((chore (chore-pick-chore)))
     (chore--create-branch chore)
-    (chore--create-org-file chore)))
+    (if chore-single-note-file
+        (chore--create-org-headline chore)
+      (chore--create-org-file chore))))
 
 (provide 'chore)
 
