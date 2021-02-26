@@ -79,7 +79,7 @@ Apply SUFFIX to spotify-prefixed functions, applying ARGS."
   (let ((chore-note-file (if chore-single-note-file chore-single-note-file chore-current-note)))
     (if chore-note-file
         (if (string-equal (file-truename buffer-file-name) (file-truename chore-note-file))
-            (switch-to-buffer (other-buffer (current-buffer) 1))
+            (switch-to-buffer (other-buffer (current-buffer)))
           (find-file chore-note-file)))))
 
 (defun chore--chore-name-cleaned (chore)
