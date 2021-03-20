@@ -4,10 +4,10 @@
 
 ;; Author:     Tatu Lahtela <lahtela@iki.fi>
 ;; Maintainer: Tatu Lahtela <lahtela@iki.fi>
-;; Version:    0.1.1
+;; Version:    0.1.2
 ;; Keywords:   lisp, clubhouse, git
 ;; Homepage:   https://github.com/doublep/datetime
-;; Package-Requires: ((emacs "24.4") (dash) (magit))
+;; Package-Requires: ((emacs "24.4") (magit))
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -134,9 +134,7 @@ Apply SUFFIX to spotify-prefixed functions, applying ARGS."
 
 (defun find--alist-entry (target alist)
   "Find TARGET entry in alist ALIST."
-  (->> alist
-       (-find (lambda (key-value)
-                   (string-equal (cdr key-value) target)))))
+  (seq-filter (lambda (k) (string-equal (cdr k) target)) alist))
 
 (defun chore-pick-chore ()
   (interactive)
