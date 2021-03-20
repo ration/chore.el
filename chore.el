@@ -4,7 +4,7 @@
 
 ;; Author:     Tatu Lahtela <lahtela@iki.fi>
 ;; Maintainer: Tatu Lahtela <lahtela@iki.fi>
-;; Version:    0.1.0
+;; Version:    0.1.1
 ;; Keywords:   lisp, clubhouse, git
 ;; Homepage:   https://github.com/doublep/datetime
 ;; Package-Requires: ((emacs "24.4") (dash) (magit))

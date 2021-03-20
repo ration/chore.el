@@ -1,5 +1,7 @@
 ;; Clubhouse backend for chore
 
+;; (defvar org-clubhouse-username)
+
 ;; Requires org-clubhouse
 (defun chore-clubhouse-get-chores ()
   "Get cons list of task id - title from Clubhouse"
