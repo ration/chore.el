@@ -9,9 +9,10 @@
   "Get cons list of task id - title from Forge."
   (with-temp-buffer
     (cd chore-current-project-git-root)
-    (mapcar (lambda (x) (cons (car x) (car (last x)))) (forge-sql [:select $i1 :from issue :where (= repository $s2)]
+    (mapcar (lambda (x) (cons (car x) (car (last x)))) (forge-sql [:select $i1 :from issue :where (and (= repository $s2) (isnull issue:closed))]
                                                                   [number title]
                                                                   (oref (forge-get-repository t) id)))))
+
 (defun chore-forge-create-org-entry (chore)
   "Create ORG entry for CHORE."
   (save-mark-and-excursion
