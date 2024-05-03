@@ -11,6 +11,4 @@
 
 (defun chore-BACKEND-create-org-entry ())
 
-(defun chore-BACKEND-branch-name (chore))
-
 (provide 'chore-BACKEND)

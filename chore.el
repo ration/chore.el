@@ -48,6 +48,7 @@
 
 (defun chore-set-project-settings ()
   "Set variables based on the current project directory's settings."
+  (interactive)
   (let* ((project (project-current))
          (project-dir (when project (expand-file-name (project-root project))))
          (settings-alist (cdr (assoc project-dir chore-projects))))
@@ -55,18 +56,21 @@
       (let ((key (car setting))
             (value (cdr setting)))
         (if (string-match "chore-" (symbol-name key))
-            (set key value))))))
-        ;;(cond ((eq key 'chore-backend) (setq chore-backend value)))))))
-
-
-
-
+            (set key value))))
+    (setq chore-current-project-git-root project-dir)
+    ))
 
 (defcustom chore-current-project-subdir "" "Subdiretory for notes files." :type '(string) :group 'chore)
-(defcustom chore-current-project-git-root nil "GIT root for current project." :type '(string) :group 'chore)
+(defcustom chore-current-project-git-root (expand-file-name (project-root (project-current))) "GIT root for current project." :type '(string) :group 'chore)
 (defcustom chore-single-note-file "" "If non nill this file as the org file." :type '(string) :group 'chore)
 
-
+(defcustom chore-branch-name "%x/%n" "Branch name for new chore.
+Supported substitions depend on used backend
+Known substitions:
+%x = Ticket id
+%n = Ticket name. Spaces are replaces with '-'"
+  :type '(string)
+  :group 'chore)
 (defcustom chore-backend "forge" "Backend for chores." :type '(string) :group 'chore)
 
 (let ((backend-file (expand-file-name (concat "chore-" chore-backend ".el") (file-name-directory load-file-name))))
@@ -97,8 +101,7 @@ Apply SUFFIX to spotify-prefixed functions, applying ARGS."
 
 (defun chore--branch-name (chore)
   "Branch name to create for CHORE."
-  ;; TODO as config
-  (chore-apply "branch-name" chore))
+  (format-spec chore-branch-name `((?i . ,(car chore)) (?n . ,(replace-regexp-in-string "[ :]" "-" (cdr chore))) nil t)))
 
 ;;; Common methods
 
