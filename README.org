@@ -18,7 +18,7 @@ Supported backends:
 - [[https://clubhouse.io/][[ ] Clubhouse]]
 - [ ] Azure devops
 
- # Sample use-package (straight) configuration
+* Sample use-package (straight) configuration
 
 #+begin_src emacs-lisp
 (use-package chore
