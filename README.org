@@ -14,5 +14,21 @@ TODO:
 - [ ] Allow easy switching between projects
 
 Supported backends:
-- [[https://github.com/magit/forge][magit/forge]]
-- [[https://clubhouse.io/][Clubhouse]]
+- [[https://github.com/magit/forge][[ ] magit/forge]]
+- [[https://clubhouse.io/][[ ] Clubhouse]]
+- [ ] Azure devops
+
+ # Sample use-package (straight) configuration
+
+#+begin_src emacs-lisp
+(use-package chore
+  :straight (:host github :repo "ration/chore.el")
+  :config
+  (setq chore-projects  '(("/home/user/git/project/" ((chore-backend . "azure-devops")
+                                                      (chore-single-note-file . "~/Org/project.org")))
+ 
+                          ("/home/user/git/chore.el/" ((chore-backend . "github")
+                          ))))
+  :hook (projectile-after-switch-project . chore-set-project-settings)
+)  
+#+end_src

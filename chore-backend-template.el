@@ -9,7 +9,6 @@
                           (format "owner:%s !is:done !is:archived"
                                   org-clubhouse-username))))
 
-
 (defun chore-BACKEND-create-org-entry ())
 
 (defun chore-BACKEND-branch-name (chore))

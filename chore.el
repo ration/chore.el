@@ -1,11 +1,11 @@
 ;;; chore.el --- Bootstrap chores  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020 Tatu Lahtela
+;; Copyright (C) 2024 Tatu Lahtela
 
 ;; Author:     Tatu Lahtela <lahtela@iki.fi>
 ;; Maintainer: Tatu Lahtela <lahtela@iki.fi>
-;; Version:    0.1.3
-;; Keywords:   lisp, clubhouse, git
+;; Version:    0.0.1
+;; Keywords:   lisp, git
 ;; Homepage:   https://github.com/doublep/datetime
 ;; Package-Requires: ((emacs "24.4") (magit))
 
@@ -25,7 +25,7 @@
 
 ;;; Commentary:
 
-;; Helpers for organizing creation and handling of chores.
+;; Helpers for organizing creation and handling of programming chores.
 ;; Creates the repeatable infrastructure for a new chore, such as
 ;; a new org file for notes and a git branch.
 
@@ -34,9 +34,38 @@
 ;;; Code:
 
 ;;; Customization
+
+(defgroup chore nil
+  "Customization group for project-specific settings."
+  :group 'applications)
+
+(defcustom chore-projects nil
+  "Alist of project settings where each project can have custom keys and values."
+  :type '(alist :key-type string
+                :value-type (alist :key-type string :value-type sexp))
+  :group 'chore)
+
+
+(defun chore-set-project-settings ()
+  "Set variables based on the current project directory's settings."
+  (let* ((project (project-current))
+         (project-dir (when project (expand-file-name (project-root project))))
+         (settings-alist (cdr (assoc project-dir chore-projects))))
+    (dolist (setting (car settings-alist))
+      (let ((key (car setting))
+            (value (cdr setting)))
+        (if (string-match "chore-" (symbol-name key))
+            (set key value))))))
+        ;;(cond ((eq key 'chore-backend) (setq chore-backend value)))))))
+
+
+
+
+
 (defcustom chore-current-project-subdir "" "Subdiretory for notes files." :type '(string) :group 'chore)
 (defcustom chore-current-project-git-root nil "GIT root for current project." :type '(string) :group 'chore)
 (defcustom chore-single-note-file "" "If non nill this file as the org file." :type '(string) :group 'chore)
+
 
 (defcustom chore-backend "forge" "Backend for chores." :type '(string) :group 'chore)
 
