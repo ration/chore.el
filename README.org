@@ -15,8 +15,21 @@ TODO:
 
 Supported backends:
 - [[https://github.com/magit/forge][[ ] magit/forge]]
-- [[https://clubhouse.io/][[ ] Clubhouse]]
 - [ ] Azure devops
+
+* Configuration options
+
+TODO Create default options
+All configration options can be default or project specific.
+
+
+| Name                   | Default Value | Description                                                              |
+|------------------------+---------------+--------------------------------------------------------------------------|
+| chore-backend          | forge         | Which backend to use.                                                    |
+| chore-branch-name      | %i/%n         | Git branch name for new chores.                                          |
+| chore-single-note-file | nil           | Note file for chores. When creating chores a org note is created.        |
+| chore-notes-root       | nil           | Instead of a single notes file, a new org file is created for each task. |
+
 
 * Sample use-package (straight) configuration
 
@@ -30,5 +43,8 @@ Supported backends:
                           ("/home/user/git/chore.el/" ((chore-backend . "github")
                           ))))
   :hook (projectile-after-switch-project . chore-set-project-settings)
-)  
+)
 #+end_src
+
+
+* Creating new backends

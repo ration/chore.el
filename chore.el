@@ -7,7 +7,7 @@
 ;; Version:    0.0.1
 ;; Keywords:   lisp, git
 ;; Homepage:   https://github.com/doublep/datetime
-;; Package-Requires: ((emacs "24.4") (magit))
+;; Package-Requires: ((emacs "24.4") (magit) (plz))
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -60,9 +60,10 @@
     (setq chore-current-project-git-root project-dir)
     ))
 
+;; TODO whats this?
 (defcustom chore-current-project-subdir "" "Subdiretory for notes files." :type '(string) :group 'chore)
 (defcustom chore-current-project-git-root (expand-file-name (project-root (project-current))) "GIT root for current project." :type '(string) :group 'chore)
-(defcustom chore-single-note-file "" "If non nill this file as the org file." :type '(string) :group 'chore)
+(defcustom chore-single-note-file nil "If non nill this file as the org file." :type '(string) :group 'chore)
 
 (defcustom chore-branch-name "%x/%n" "Branch name for new chore.
 Supported substitions depend on used backend
@@ -73,6 +74,7 @@ Known substitions:
   :group 'chore)
 (defcustom chore-backend "forge" "Backend for chores." :type '(string) :group 'chore)
 
+;; TODO reload
 (let ((backend-file (expand-file-name (concat "chore-" chore-backend ".el") (file-name-directory load-file-name))))
   (if (file-exists-p backend-file) (load-file backend-file)))
 
@@ -103,7 +105,10 @@ Apply SUFFIX to spotify-prefixed functions, applying ARGS."
   "Branch name to create for CHORE."
   (format-spec chore-branch-name `((?i . ,(car chore)) (?n . ,(replace-regexp-in-string "[ :]" "-" (cdr chore))) nil t)))
 
+;; TODO some kind of load method to check parameters?
+
 ;;; Common methods
+;;;
 
 (defun chore-switch-to-note ()
   "Switch to note file if set."
