@@ -17,3 +17,4 @@
   (format "feature/ch%s/%s" (car chore) (replace-regexp-in-string "[ :]" "-" (cdr chore))))
 
 (provide 'chore-clubhouse)
+

@@ -17,7 +17,7 @@
   "Create ORG entry for CHORE."
   (save-mark-and-excursion
     (insert (format
-     "* %s: %s
+     "* TODO %s: %s
 :PROPERTIES:
 :github-issue: %s
 :END:
@@ -32,3 +32,4 @@
 (provide 'chore-forge)
 
 ;;; chore-forge.el ends here
+

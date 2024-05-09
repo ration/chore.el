@@ -46,8 +46,8 @@
   :group 'chore)
 
 
-(defun chore-set-project-settings ()
-  "Set variables based on the current project directory's settings."
+(defun chore-update-project-settings ()
+  "Update variables based on the current project directory's settings."
   (interactive)
   (let* ((project (project-current))
          (project-dir (when project (expand-file-name (project-root project))))
@@ -58,32 +58,48 @@
         (if (string-match "chore-" (symbol-name key))
             (set key value))))
     (setq chore-current-project-git-root project-dir)
-    ))
+    (if (not (chore-backend-loaded-p chore-backend))
+        (chore-load-backend chore-backend)
+    )))
 
-;; TODO whats this?
-(defcustom chore-current-project-subdir "" "Subdiretory for notes files." :type '(string) :group 'chore)
-(defcustom chore-current-project-git-root (expand-file-name (project-root (project-current))) "GIT root for current project." :type '(string) :group 'chore)
-(defcustom chore-single-note-file nil "If non nill this file as the org file." :type '(string) :group 'chore)
+(defcuse-current-project-subdir "" "Subdiretory for notes files." :type '(string) :group 'chore)
+(defcuse-current-project-git-root (expand-file-name (project-root (project-current))) "GIT root for current project." :type '(string) :group 'chore)
+(defcuse-single-note-file nil "If non nill this file as the org file." :type '(string) :group 'chore)
 
-(defcustom chore-branch-name "%x/%n" "Branch name for new chore.
-Supported substitions depend on used backend
-Known substitions:
-%x = Ticket id
-%n = Ticket name. Spaces are replaces with '-'"
-  :type '(string)
-  :group 'chore)
-(defcustom chore-backend "forge" "Backend for chores." :type '(string) :group 'chore)
+(defcuse-branch-name "%x/%n" "Branch name for new chore.
+Supportitions depend on used backend
+Known sns:
+%x = Ti
+%n = Tie. Spaces are replaces with '-'"
+  :typeg)
+  :grou)
+(defcuse-backend "forge" "Backend for chores. This is usually set by chore-update-project-settings." :type '(string) :group 'chore)
 
-;; TODO reload
-(let ((backend-file (expand-file-name (concat "chore-" chore-backend ".el") (file-name-directory load-file-name))))
-  (if (file-exists-p backend-file) (load-file backend-file)))
 
-(defcustom chore-notes-root  (concat (getenv "HOME") "/Org/" chore-current-project-subdir)
-  "Root directory for notes files.
-Creates a note file in this directory unless CHORE--SINGLE-NOTE-FILE is set." :type '(string) :group 'chore)
+(defcuse-notes-root  (concat (getenv "HOME") "/Org/" chore-current-project-subdir)
+  "Rootry for notes files.
+Createsfile in this directory unless CHORE--SINGLE-NOTE-FILE is set." :type '(string) :group 'chore)
 
-;; TODO allow changing current note
-(defcustom chore-current-note nil "Current note location." :type '(string) :group 'chore)
+(defcuse-current-note nil "Current note location." :type '(string) :group 'chore)
+
+(defun ckend-loaded-p (backend)
+  "Retuif the current backend set by BACKEND is loaded"
+  (inte
+  (feattern backend)))
+
+(defun bug (msg &rest args)
+  (messargs))
+
+(defun ad-backend (backend)
+  "Load backend BACKEND. Assumes file is called 'chore-BACKEND.el'
+   and exists in the same directory as this file."
+  (let ((backend-file (expand-file-name
+                       (concat "chore-" backend ".el")
+                       (file-name-directory (progn load-file-name buffer-file-name)))))
+    (chore-debug "Loading %s" backend-file)
+    (if (file-exists-p backend-file)
+        (load-file backend-file)
+      (warn "Backend file %s was not found" backend-file))))
 
 
 ;;; Backend multimethods

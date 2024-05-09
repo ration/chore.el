@@ -27,8 +27,10 @@
     :headers (chore-azure-devops-headers)
     :as #'json-read
     )
-      (mapcar (lambda (x) (cdr (assoc 'url x))) (let-alist azz .workItems))
-    ))
+      (mapcar (lambda (x) (cdr (assoc 'url x))) .workItems)
+      ))
+
+;; (chore-azure-get-work-item-urls)
 
 (defun chore-azure-devops-get-ticket (url)
   (plz 'get url :headers (chore-azure-devops-headers) :as #'json-read))
@@ -42,7 +44,16 @@
    ))
 
 
-(defun chore-azure-devops-create-org-entry ())
+(defun chore-azure-devops-create-org-entry (chore)
+    (save-mark-and-excursion
+    (insert (format
+     "* %s: %s
+:PROPERTIES:
+:azure-devops-id: %s
+:END:
+
+"
+ (car chore) (cdr chore) (car chore)))))
 
 (defun chore-azure-devops-get-url ()
   (string-replace "<project>" chore-azure-devops-project
