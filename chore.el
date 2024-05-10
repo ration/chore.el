@@ -118,12 +118,12 @@ Apply SUFFIX to spotify-prefixed functions, applying ARGS."
 
 (defun chore--branch-name (chore)
   "Branch name to create for CHORE."
-  (format-spec chore-branch-name `((?i . ,(car chore)) (?n . ,(replace-regexp-in-string "[ :]" "-" (cdr chore))) nil t)))
+  (format-spec chore-branch-name `((?i . ,(car chore)) (?n . ,(downcase (replace-regexp-in-string "[ :]" "-" (cdr chore))) nil t))))
 
 ;; TODO some kind of load method to check parameters?
 
 ;;; Common methods
-;;;
+;;;  
 
 (defun chore-switch-to-note ()
   "Switch to note file if set."
